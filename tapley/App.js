@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Bismillah First step towards FYP
+      <Text>Bismillah First step towards FYP Haha Ho rha message show k nhi?
       </Text>
       <StatusBar style="auto" />
     </View>
