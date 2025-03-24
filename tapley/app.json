@@ -1,28 +1,33 @@
 {
   "expo": {
-    "name": "tapley",
+    "name": "Tapley",
     "slug": "tapley",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/woman.png",
     "userInterfaceStyle": "light",
+    "scheme": "tapley",
+    "backgroundColor": "#ffffff",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./assets/images/foreground.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.yourcompany.tapley",
+      "permissions": []  
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.tapley",
+      "infoPlist": {} 
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": []  
   }
 }
