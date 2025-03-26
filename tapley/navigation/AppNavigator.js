@@ -1,83 +1,40 @@
 import React from 'react';
-import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-// Screen imports
-import LoginScreen from '../screens/Auth/Login_screen';
 import RideComparisonScreen from '../screens/Ride/Ride_comparison_screen';
-import MapScreen from '../screens/Ride/Mapscreen';
-
-// Simplified Error Boundary
-class ErrorBoundary extends React.Component {
-  state = { hasError: false };
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Navigation Error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>Navigation Error Occurred</Text>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
-}
+// Import other screens...
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
-    <ErrorBoundary>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Login"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: '#FF8C00', // Changed to orange
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
-            headerBackTitleVisible: false,
-            animation: 'slide_from_right',
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="RideComparison"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#FF8C00', // Orange header for all screens
+          },
+          headerTintColor: '#fff', // White text
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontSize: 20,
+          },
+          headerBackTitleVisible: false,
+        }}
+      >
+        <Stack.Screen
+          name="RideComparison"
+          component={RideComparisonScreen}
+          options={{
+            title: 'Compare Ride Options',
+            // Additional orange theme elements can be added here
           }}
-        >
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{
-              headerShown: false,
-              animationTypeForReplace: 'pop',
-            }}
-          />
-          <Stack.Screen
-            name="RideComparison"
-            component={RideComparisonScreen}
-            options={{
-              title: 'Compare Ride Options',
-              // Inherits the orange header from screenOptions
-            }}
-          />
-          <Stack.Screen
-            name="MapScreen"
-            component={MapScreen}
-            options={{ 
-              title: 'Map View',
-              // Inherits the orange header from screenOptions
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ErrorBoundary>
+        />
+        {/* Add other screens... */}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
+
+export default AppNavigator;
