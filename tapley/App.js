@@ -1,19 +1,22 @@
-// App.js (simplified version)
+// App.js (with conditional rendering)
 import React from 'react';
+import { View, Text, StyleSheet, StatusBar, Button } from 'react-native';
 import AppNavigator from './navigation/AppNavigator';
 
 export default function App() {
-<<<<<<< HEAD
+  const [showNav, setShowNav] = React.useState(false);
+
+  if (!showNav) {
+    return (
+      <View style={styles.container}>
+        <Text>Bismillah First step towards FYP...</Text>
+        <Button title="Continue" onPress={() => setShowNav(true)} />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+
   return <AppNavigator />;
-}
-=======
-  return (
-    <View style={styles.container}>
-      <Text>Bismillah First step towards FYP Haha Ho rha message show k nhi?Yes Ayesha apka message show horha hai .
-      </Text>
-      <StatusBar style="auto" />
-    </View>
-  );
 }
 
 const styles = StyleSheet.create({
@@ -24,4 +27,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
->>>>>>> 99feba97c9ddc886fd6be8bfc3e957fbf78812c3

@@ -18,16 +18,27 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.yourcompany.tapley",
-      "permissions": []  
+      "permissions": [
+        "ACCESS_FINE_LOCATION"  
+      ]
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.tapley",
-      "infoPlist": {} 
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Tapley needs your location to show nearby ride options"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": []  
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Tapley to use your location."
+        }
+      ]
+    ]
   }
 }
