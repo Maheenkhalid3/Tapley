@@ -1,4 +1,3 @@
-// screens/Auth/LoginScreen.js
 import React, { useState } from 'react';
 import { 
   View, 
@@ -9,8 +8,11 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Dimensions
 } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -18,7 +20,6 @@ const LoginScreen = ({ navigation }) => {
   const [isLogin, setIsLogin] = useState(true);
 
   const handleAuth = () => {
-    // Authentication logic will go here
     navigation.navigate('RideComparison');
   };
 
@@ -27,39 +28,42 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* App Logo/Header */}
-        <View style={styles.header}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Logo with curved edges */}
+        <View style={styles.logoContainer}>
           <Image 
-            source={require('../../assets/icons/myapplogo.png')} // Replace with your logo
+            source={require('../../assets/icons/L.png')}
             style={styles.logo}
           />
-          <Text style={styles.title}>Tapley</Text>
-          <Text style={styles.subtitle}>
-            {isLogin ? 'Sign in to continue' : 'Create an account to get started'}
-          </Text>
         </View>
 
         {/* Auth Form */}
         <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email address"
-            placeholderTextColor="#999"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Email address"
+              placeholderTextColor="#999"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
           
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#999"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
 
           {isLogin && (
             <TouchableOpacity style={styles.forgotPassword}>
@@ -70,43 +74,56 @@ const LoginScreen = ({ navigation }) => {
           <TouchableOpacity 
             style={styles.authButton}
             onPress={handleAuth}
+            activeOpacity={0.8}
           >
             <Text style={styles.authButtonText}>
               {isLogin ? 'Sign In' : 'Sign Up'}
             </Text>
           </TouchableOpacity>
 
-          {/* Social Login Options */}
-          <View style={styles.socialContainer}>
-            <Text style={styles.socialText}>Or continue with</Text>
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Image 
-                  source={require('../../assets/icons/googlelogo.png')} 
-                  style={styles.socialIcon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Image 
-                  source={require('../../assets/icons/facebook logo.png')} 
-                  style={styles.socialIcon}
-                />
-              </TouchableOpacity>
-            </View>
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={styles.socialButtons}>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              activeOpacity={0.7}
+            >
+              <Image 
+                source={require('../../assets/icons/googlelogo.png')} 
+                style={styles.googleIcon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              activeOpacity={0.7}
+            >
+              <Image 
+                source={require('../../assets/icons/f.png')} 
+                style={styles.facebookIcon}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Switch between Login/Signup */}
-        <View style={styles.switchContainer}>
+        {/* Switch Auth Mode */}
+        <TouchableOpacity 
+          style={styles.switchContainer}
+          onPress={() => setIsLogin(!isLogin)}
+          activeOpacity={0.6}
+        >
           <Text style={styles.switchText}>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-          </Text>
-          <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
             <Text style={styles.switchButtonText}>
               {isLogin ? 'Sign Up' : 'Sign In'}
             </Text>
-          </TouchableOpacity>
-        </View>
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -115,100 +132,135 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingBottom: 40,
   },
-  header: {
+  logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a73e8',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
+    width: width * 0.4,
+    height: width * 0.4,
+    resizeMode: 'contain',
+    borderRadius: 30, // Curved edges (not fully circular)
+    backgroundColor: '#FF8C00', // Orange background
+    padding: 20, // Ensures logo doesn't touch edges
+    shadowColor: '#FF8C00',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
   },
   formContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 30,
+  },
+  inputContainer: {
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   input: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
     fontSize: 16,
     color: '#333',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#FFE5CC',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 25,
   },
   forgotPasswordText: {
-    color: '#1a73e8',
+    color: '#FF8C00',
     fontSize: 14,
+    fontWeight: '600',
   },
   authButton: {
-    backgroundColor: '#1a73e8',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: '#FF8C00',
+    padding: 18,
+    borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 30,
+    shadowColor: '#FF8C00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   authButtonText: {
-    color: '#fff',
+    color: '#FFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  socialContainer: {
+  dividerContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    marginVertical: 25,
   },
-  socialText: {
-    color: '#666',
-    marginBottom: 16,
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F0F0F0',
+  },
+  dividerText: {
+    paddingHorizontal: 10,
+    color: '#999',
+    fontSize: 14,
+    fontWeight: '500',
   },
   socialButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
+    gap: 20,
   },
   socialButton: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 50,
-    marginHorizontal: 8,
+    backgroundColor: '#FFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#FFE5CC',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  socialIcon: {
-    width: 24,
-    height: 24,
+  googleIcon: {
+    width: 28,
+    height: 28,
+  },
+  facebookIcon: {
+    width: 28,
+    height: 28,
   },
   switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 40,
+    marginTop: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
   },
   switchText: {
     color: '#666',
+    fontSize: 14,
   },
   switchButtonText: {
-    color: '#1a73e8',
-    fontWeight: 'bold',
+    color: '#FF8C00',
+    fontWeight: '600',
   },
 });
 
