@@ -1,4 +1,3 @@
-// screens/Ride/RideComparisonScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -22,34 +21,30 @@ const RideComparisonScreen = ({ navigation }) => {
 
   const rideOptions = [
     { id: 1, name: 'Bike', icon: 'motorcycle' },
-    { id: 2, name: 'Car', icon: 'car' },
-    { id: 3, name: 'Mini', icon: 'car-side' },
-    { id: 4, name: 'AC', icon: 'snowflake' },
-    { id: 5, name: 'Courier', icon: 'box' },
+    { id: 3, name: 'Ride Mini', icon: 'car' },
+    { id: 4, name: 'Ride AC', icon: 'car' },
+    { id: 5, name: 'Courier', icon: 'cube' },
     { id: 6, name: 'Cargo', icon: 'truck' },
   ];
 
   const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
 
   const handlePriceComparison = () => {
-    // Navigate to price comparison results
     navigation.navigate('PriceResults');
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={toggleSidebar}>
-          <MaterialIcons name="menu" size={28} color="#1a73e8" />
+          <MaterialIcons name="menu" size={28} color="#FF8C00" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tapley</Text>
         <TouchableOpacity>
-          <FontAwesome name="user-circle" size={28} color="#1a73e8" />
+          <FontAwesome name="user-circle" size={28} color="#FF8C00" />
         </TouchableOpacity>
       </View>
 
-      {/* Map View */}
       <View style={styles.mapContainer}>
         <MapView
           style={styles.map}
@@ -62,10 +57,9 @@ const RideComparisonScreen = ({ navigation }) => {
         />
       </View>
 
-      {/* Location Inputs */}
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
-          <MaterialIcons name="my-location" size={20} color="#1a73e8" />
+          <MaterialIcons name="my-location" size={20} color="#FF8C00" />
           <TextInput
             style={styles.input}
             placeholder="Enter pickup location"
@@ -74,7 +68,7 @@ const RideComparisonScreen = ({ navigation }) => {
           />
         </View>
         <View style={styles.inputWrapper}>
-          <MaterialIcons name="location-on" size={20} color="#1a73e8" />
+          <MaterialIcons name="location-on" size={20} color="#FF8C00" />
           <TextInput
             style={styles.input}
             placeholder="Enter destination"
@@ -84,7 +78,6 @@ const RideComparisonScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Ride Type Selection */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -102,7 +95,7 @@ const RideComparisonScreen = ({ navigation }) => {
             <FontAwesome 
               name={ride.icon} 
               size={24} 
-              color={selectedRide === ride.id ? '#fff' : '#1a73e8'} 
+              color={selectedRide === ride.id ? '#fff' : '#FF8C00'} 
             />
             <Text 
               style={[
@@ -116,7 +109,6 @@ const RideComparisonScreen = ({ navigation }) => {
         ))}
       </ScrollView>
 
-      {/* Price Comparison Button */}
       <TouchableOpacity 
         style={styles.compareButton}
         onPress={handlePriceComparison}
@@ -124,7 +116,6 @@ const RideComparisonScreen = ({ navigation }) => {
         <Text style={styles.compareButtonText}>Price Comparison</Text>
       </TouchableOpacity>
 
-      {/* Sidebar Menu */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -142,32 +133,32 @@ const RideComparisonScreen = ({ navigation }) => {
             
             <ScrollView style={styles.sidebarContent}>
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="person" size={24} color="#1a73e8" />
+                <MaterialIcons name="person" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Profile</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="help" size={24} color="#1a73e8" />
+                <MaterialIcons name="help" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Help & Support</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="privacy-tip" size={24} color="#1a73e8" />
+                <MaterialIcons name="privacy-tip" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Privacy Policy</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="bookmark" size={24} color="#1a73e8" />
+                <MaterialIcons name="bookmark" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Saved Places</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="star" size={24} color="#1a73e8" />
+                <MaterialIcons name="star" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Ratings</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.menuItem}>
-                <MaterialIcons name="settings" size={24} color="#1a73e8" />
+                <MaterialIcons name="settings" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Settings</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -196,7 +187,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1a73e8',
+    color: '#FF8C00',
   },
   mapContainer: {
     height: height * 0.4,
@@ -237,18 +228,18 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   selectedRideOption: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#FF8C00',
   },
   rideOptionText: {
     marginTop: 4,
-    color: '#1a73e8',
+    color: '#FF8C00',
     fontSize: 12,
   },
   selectedRideText: {
     color: '#fff',
   },
   compareButton: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#FF8C00',
     padding: 16,
     borderRadius: 8,
     margin: 16,
@@ -270,7 +261,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sidebarHeader: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#FF8C00',
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',

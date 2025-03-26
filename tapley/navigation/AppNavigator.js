@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Screen imports
 import LoginScreen from '../screens/Auth/Login_screen';
 import RideComparisonScreen from '../screens/Ride/Ride_comparison_screen';
-import MapScreen from '../screens/Ride/Mapscreen'; // Added MapScreen import
+import MapScreen from '../screens/Ride/Mapscreen';
 
 // Simplified Error Boundary
 class ErrorBoundary extends React.Component {
@@ -42,7 +42,7 @@ const AppNavigator = () => {
           initialRouteName="Login"
           screenOptions={{
             headerStyle: {
-              backgroundColor: '#1a73e8',
+              backgroundColor: '#FF8C00', // Changed to orange
             },
             headerTintColor: '#fff',
             headerTitleStyle: {
@@ -65,18 +65,15 @@ const AppNavigator = () => {
             component={RideComparisonScreen}
             options={{
               title: 'Compare Ride Options',
+              // Inherits the orange header from screenOptions
             }}
           />
-          {/* Added MapScreen to navigation stack */}
           <Stack.Screen
             name="MapScreen"
             component={MapScreen}
             options={{ 
               title: 'Map View',
-              headerStyle: {
-                backgroundColor: '#1a73e8',
-              },
-              headerTintColor: '#fff',
+              // Inherits the orange header from screenOptions
             }}
           />
         </Stack.Navigator>
@@ -84,5 +81,3 @@ const AppNavigator = () => {
     </ErrorBoundary>
   );
 };
-
-export default AppNavigator;

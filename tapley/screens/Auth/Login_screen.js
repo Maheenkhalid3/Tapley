@@ -32,7 +32,7 @@ const LoginScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo with curved edges */}
+        {/* Logo with optimized size and alignment */}
         <View style={styles.logoContainer}>
           <Image 
             source={require('../../assets/icons/L.png')}
@@ -130,6 +130,8 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+
+
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -141,20 +143,20 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
     paddingHorizontal: 20,
   },
   logo: {
-    width: width * 0.4,
-    height: width * 0.4,
+    width: width * 0.3, // Adjusted for better alignment
+    height: width * 0.3,
     resizeMode: 'contain',
-    borderRadius: 30, // Curved edges (not fully circular)
-    backgroundColor: '#FF8C00', // Orange background
-    padding: 20, // Ensures logo doesn't touch edges
+    borderRadius: 20,
+    backgroundColor: '#FF8C00',
+    padding: 15,
     shadowColor: '#FF8C00',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 15,
+    shadowRadius: 10,
     elevation: 5,
   },
   formContainer: {
@@ -162,11 +164,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   input: {
     backgroundColor: '#FFF',
@@ -193,33 +190,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 30,
-    shadowColor: '#FF8C00',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
   },
   authButtonText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 25,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#F0F0F0',
-  },
-  dividerText: {
-    paddingHorizontal: 10,
-    color: '#999',
-    fontSize: 14,
-    fontWeight: '500',
   },
   socialButtons: {
     flexDirection: 'row',
@@ -235,11 +210,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#FFE5CC',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   googleIcon: {
     width: 28,
@@ -257,10 +227,28 @@ const styles = StyleSheet.create({
   switchText: {
     color: '#666',
     fontSize: 14,
+    
   },
   switchButtonText: {
     color: '#FF8C00',
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 25,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F0F0F0',
+  },
+  dividerText: {
+    width: 120, // Fixed width for perfect centering
+    textAlign: 'center', // Center text within its container
+    color: '#999',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 
