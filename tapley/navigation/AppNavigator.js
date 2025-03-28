@@ -28,7 +28,7 @@ const AppNavigator = () => {
           component={RideComparisonScreen}
           options={{
             title: 'Compare Ride Options',
-            // Additional orange theme elements can be added here
+            
           }}
         />
         {/* Add other screens... */}
