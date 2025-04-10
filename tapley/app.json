@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Tapley",
+    "slug": "tapley",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/woman.png",
+    "userInterfaceStyle": "light",
+    "scheme": "tapley",
+    "backgroundColor": "#ffffff",
+    "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/foreground.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.yourcompany.tapley",
+      "permissions": ["ACCESS_FINE_LOCATION"]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.tapley",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Tapley needs your location to show nearby ride options"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+     
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Tapley to use your location."
+        }
+      ]
+    ]
+  }
+}
