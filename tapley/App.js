@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import AppNavigator from './navigation/AppNavigator';
+import 'react-native-gesture-handler'; 
 
 export default function App() {
   const [showSplash, setShowSplash] = React.useState(true);

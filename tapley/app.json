@@ -9,18 +9,14 @@
     "scheme": "tapley",
     "backgroundColor": "#ffffff",
     "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/foreground.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.yourcompany.tapley",
-      "permissions": [
-        "ACCESS_FINE_LOCATION"  
-      ]
+      "permissions": ["ACCESS_FINE_LOCATION"]
     },
     "ios": {
       "supportsTablet": true,
@@ -33,6 +29,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+     
       [
         "expo-location",
         {
