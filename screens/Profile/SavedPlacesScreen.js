@@ -10,6 +10,7 @@ import {
   Alert
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { ThemeContext } from '@context/ThemeContext';
 
 const SavedPlacesScreen = ({ navigation }) => {
   const [savedLocations, setSavedLocations] = useState([]);

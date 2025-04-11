@@ -8,19 +8,19 @@ import {
   Linking,
   LayoutAnimation,
   Platform,
-  UIManager,
-  Dimensions
+  UIManager
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-
-const { height } = Dimensions.get('window');
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const HelpSupportScreen = ({ navigation }) => {
+const HelpSupportScreen = () => {
+  const [expandedId, setExpandedId] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const handleContact = (method) => {
     switch (method) {
       case 'email':
@@ -62,28 +62,34 @@ const HelpSupportScreen = ({ navigation }) => {
     },
   ];
 
-  const [expandedId, setExpandedId] = useState(null);
-
   const toggleAnswer = (id) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(
+        200,
+        LayoutAnimation.Types.easeInEaseOut,
+        LayoutAnimation.Properties.opacity
+      ),
+      () => setIsAnimating(false)
+    );
+    
     setExpandedId(expandedId === id ? null : id);
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* FAQ Section */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.faqContainer}>
           <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
           {faqs.map((item) => (
             <View key={item.id} style={styles.faqItem}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.faqHeader}
                 onPress={() => toggleAnswer(item.id)}
                 activeOpacity={0.7}
+                delayPressIn={0}
               >
                 <Text style={styles.faqQuestion}>{item.question}</Text>
                 <MaterialIcons
@@ -102,7 +108,6 @@ const HelpSupportScreen = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Contact Support Section - Now properly positioned */}
         <View style={styles.contactContainer}>
           <Text style={styles.sectionTitle}>Contact Support</Text>
           
@@ -140,13 +145,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: 16,
-    paddingBottom: 30, // Extra padding to ensure contact section is visible
-    minHeight: height - 100, // Ensures content fills screen
+    paddingBottom: 30,
   },
   faqContainer: {
     backgroundColor: '#fff',
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 12,
   },
   faqQuestion: {
     fontSize: 16,

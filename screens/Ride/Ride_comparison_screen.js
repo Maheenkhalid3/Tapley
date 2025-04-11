@@ -35,14 +35,15 @@ const RideComparisonScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Header with centered title */}
       <View style={styles.header}>
         <TouchableOpacity onPress={toggleSidebar}>
           <MaterialIcons name="menu" size={28} color="#FF8C00" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tapley</Text>
-        <TouchableOpacity>
-          <FontAwesome name="user-circle" size={28} color="#FF8C00" />
-        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Tapley</Text>
+        </View>
+        <View style={{ width: 28 }} /> {/* Spacer for balance */}
       </View>
 
       <View style={styles.mapContainer}>
@@ -132,66 +133,71 @@ const RideComparisonScreen = ({ navigation }) => {
             </View>
             
             <ScrollView style={styles.sidebarContent}>
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('Profile');
+                }}
+              >
                 <MaterialIcons name="person" size={24} color="#FF8C00" />
                 <Text style={styles.menuItemText}>Profile</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-  style={styles.menuItem}
-  onPress={() => {
-    toggleSidebar();
-    navigation.navigate('Help and Support', { fromSidebar: true }); // Pass parameter
-  }}
->
-  <MaterialIcons name="help" size={24} color="#FF8C00" />
-  <Text style={styles.menuItemText}>Help & Support</Text>
-</TouchableOpacity>
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('HelpSupport'); // Changed from 'Help and Support'
+                }}
+              >
+                <MaterialIcons name="help" size={24} color="#FF8C00" />
+                <Text style={styles.menuItemText}>Help & Support</Text>
+              </TouchableOpacity>
 
-<TouchableOpacity 
-  style={styles.menuItem}
-  onPress={() => {
-    toggleSidebar();
-    navigation.navigate('PrivacyPolicy', { fromSidebar: true }); // Pass parameter
-  }}
->
-  <MaterialIcons name="privacy-tip" size={24} color="#FF8C00" />
-  <Text style={styles.menuItemText}>Privacy Policy</Text>
-</TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('PrivacyPolicy');
+                }}
+              >
+                <MaterialIcons name="privacy-tip" size={24} color="#FF8C00" />
+                <Text style={styles.menuItemText}>Privacy Policy</Text>
+              </TouchableOpacity>
               
-             
-<TouchableOpacity 
-  style={styles.menuItem}
-  onPress={() => {
-    toggleSidebar();
-    navigation.navigate('SavedPlaces'); // Navigate to the SavedPlaces screen
-  }}
->
-  <MaterialIcons name="bookmark" size={24} color="#FF8C00" />
-  <Text style={styles.menuItemText}>Saved Places</Text>
-</TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('SavedPlaces');
+                }}
+              >
+                <MaterialIcons name="bookmark" size={24} color="#FF8C00" />
+                <Text style={styles.menuItemText}>Saved Places</Text>
+              </TouchableOpacity>
               
-<TouchableOpacity 
-  style={styles.menuItem}
-  onPress={() => {
-    toggleSidebar();
-    navigation.navigate('Rating'); // Navigate to the Rating screen
-  }}
->
-  <MaterialIcons name="star" size={24} color="#FF8C00" />
-  <Text style={styles.menuItemText}>Rate Us</Text>
-</TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('Rating');
+                }}
+              >
+                <MaterialIcons name="star" size={24} color="#FF8C00" />
+                <Text style={styles.menuItemText}>Rate Us</Text>
+              </TouchableOpacity>
               
-<TouchableOpacity 
-  style={styles.menuItem}
-  onPress={() => {
-    toggleSidebar();
-    navigation.navigate('Settings');
-  }}
->
-  <MaterialIcons name="settings" size={24} color="#FF8C00" />
-  <Text style={styles.menuItemText}>Settings</Text>
-</TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  toggleSidebar();
+                  navigation.navigate('Settings');
+                }}
+              >
+                <MaterialIcons name="settings" size={24} color="#FF8C00" />
+                <Text style={styles.menuItemText}>Settings</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
@@ -215,10 +221,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     elevation: 3,
   },
+  headerTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: -1,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FF8C00',
+    textAlign: 'center',
   },
   mapContainer: {
     height: height * 0.4,

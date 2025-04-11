@@ -9,13 +9,14 @@ import {
   Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { ThemeContext } from '@context/ThemeContext';
 
 const RatingScreen = ({ navigation }) => {
   const [rating, setRating] = useState(0);
   const [accuracyRating, setAccuracyRating] = useState(0);
   const [comment, setComment] = useState('');
   
-  // These would come from your navigation params
+  // These would come from our navigation params
   const comparisonDetails = {
     date: new Date().toLocaleDateString(),
     from: "Gulberg",
@@ -29,7 +30,7 @@ const RatingScreen = ({ navigation }) => {
       return;
     }
 
-    // Here you would send the rating to your backend
+    // Here you would send the rating to our backend
     console.log("Rating submitted:", {
       appRating: rating,
       accuracyRating,

@@ -1,3 +1,4 @@
+import { ThemeContext } from '@context/ThemeContext';
 import React, { useState } from 'react';
 import {
   View,
