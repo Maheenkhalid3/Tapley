@@ -16,6 +16,8 @@ import SettingsScreen from '../screens/Profile/SettingsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import PrivacySettingsScreen from '../screens/Profile/PrivacySettingsScreen';
 import AboutUsScreen from '../screens/Profile/AboutUsScreen';
+import TermsScreen from '../screens/Auth/TermsScreen';
+
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -176,6 +178,10 @@ const AppNavigator = () => {
             headerTintColor: '#fff'
           }}
         />
+        <Stack.Screen 
+        name="Terms of Service" 
+        component={TermsScreen} />
+      
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -51,7 +51,14 @@ const AboutUsScreen = ({ navigation }) => {
           </View>
           
           {/* Terms of Service */}
-          <TouchableOpacity style={[styles.linkItem, { marginTop: 8 }]}>
+          <TouchableOpacity 
+            style={[styles.linkItem, { marginTop: 8 }]}
+            onPress={() => {
+              console.log("Terms button pressed");
+              navigation.navigate('Terms of Service');
+            }}
+            activeOpacity={0.7}
+          >
             <MaterialIcons name="gavel" size={22} color={colors.primary} />
             <Text style={[styles.linkText, { color: colors.text }]}>Terms of Service</Text>
             <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
