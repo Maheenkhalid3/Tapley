@@ -4,7 +4,7 @@
     "slug": "tapley",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/woman.png",
+    "icon": "./assets/icons/L.png",
     "userInterfaceStyle": "light",
     "scheme": "tapley",
     "backgroundColor": "#ffffff",

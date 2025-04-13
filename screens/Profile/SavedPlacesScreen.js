@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   TextInput,
-  Alert
+  Alert,
+  Modal,
+  ScrollView
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { ThemeContext } from '@context/ThemeContext';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const SavedPlacesScreen = ({ navigation }) => {
   const [savedLocations, setSavedLocations] = useState([]);
@@ -20,17 +21,9 @@ const SavedPlacesScreen = ({ navigation }) => {
     destination: '',
     name: ''
   });
+  const { colors } = useContext(ThemeContext);
 
-  // Load saved locations from storage (you'll need to implement AsyncStorage)
   useEffect(() => {
-    // Example: Load from AsyncStorage
-    // const loadLocations = async () => {
-    //   const saved = await AsyncStorage.getItem('savedLocations');
-    //   if (saved) setSavedLocations(JSON.parse(saved));
-    // };
-    // loadLocations();
-    
-    // Mock data for demonstration
     setSavedLocations([
       { id: '1', name: 'Home', pickup: 'House 123, Street 45', destination: 'Office Tower, Downtown' },
       { id: '2', name: 'Weekly Shopping', pickup: 'My Apartment', destination: 'Mega Mall' }
@@ -49,8 +42,6 @@ const SavedPlacesScreen = ({ navigation }) => {
     };
 
     setSavedLocations([...savedLocations, newLocation]);
-    // Save to AsyncStorage
-    // AsyncStorage.setItem('savedLocations', JSON.stringify([...savedLocations, newLocation]));
     setShowSaveModal(false);
     setCurrentLocation({ pickup: '', destination: '', name: '' });
   };
@@ -63,59 +54,79 @@ const SavedPlacesScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header with orange background and white text */}
+      <View style={[styles.header, { backgroundColor: '#FF8C00' }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Saved Places</Text>
+        <View style={{ width: 24 }} /> {/* Spacer for alignment */}
+      </View>
+
       {/* Saved Locations List */}
-      <ScrollView style={styles.content}>
+      <KeyboardAwareScrollView
+        style={styles.content}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+      >
         {savedLocations.length > 0 ? (
           savedLocations.map((location) => (
             <TouchableOpacity 
               key={location.id} 
-              style={styles.locationCard}
+              style={[styles.locationCard, { backgroundColor: colors.card }]}
               onPress={() => handleUseLocation(location)}
             >
               <FontAwesome name="bookmark" size={20} color="#FF8C00" />
               <View style={styles.locationInfo}>
-                <Text style={styles.locationName}>{location.name}</Text>
-                <Text style={styles.locationText}>From: {location.pickup}</Text>
-                <Text style={styles.locationText}>To: {location.destination}</Text>
+                <Text style={[styles.locationName, { color: colors.text }]}>{location.name}</Text>
+                <Text style={[styles.locationText, { color: colors.textSecondary }]}>From: {location.pickup}</Text>
+                <Text style={[styles.locationText, { color: colors.textSecondary }]}>To: {location.destination}</Text>
               </View>
               <MaterialIcons name="directions" size={24} color="#FF8C00" />
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.emptyText}>No saved locations yet</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No saved locations yet</Text>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Save Location Modal */}
       <Modal visible={showSaveModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Save This Location</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.primary }]}>Save This Location</Text>
             
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input, 
+                { 
+                  borderColor: colors.border, 
+                  color: colors.text,
+                  backgroundColor: colors.inputBackground
+                }
+              ]}
               placeholder="Name this location (e.g. Home to Work)"
+              placeholderTextColor={colors.textSecondary}
               value={currentLocation.name}
               onChangeText={(text) => setCurrentLocation({...currentLocation, name: text})}
             />
             
-            <View style={styles.locationPreview}>
-              <Text style={styles.previewText}>From: {currentLocation.pickup}</Text>
-              <Text style={styles.previewText}>To: {currentLocation.destination}</Text>
+            <View style={[styles.locationPreview, { backgroundColor: colors.background }]}>
+              <Text style={[styles.previewText, { color: colors.text }]}>From: {currentLocation.pickup}</Text>
+              <Text style={[styles.previewText, { color: colors.text }]}>To: {currentLocation.destination}</Text>
             </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity 
-                style={[styles.button, styles.cancelButton]}
+                style={[styles.button, styles.cancelButton, { backgroundColor: colors.buttonSecondary }]}
                 onPress={() => setShowSaveModal(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={[styles.buttonText, { color: colors.text }]}>Cancel</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.button, styles.saveButton]}
+                style={[styles.button, styles.saveButton, { backgroundColor: '#FF8C00' }]}
                 onPress={handleSaveLocation}
               >
                 <Text style={styles.buttonText}>Save</Text>
@@ -128,40 +139,21 @@ const SavedPlacesScreen = ({ navigation }) => {
   );
 };
 
-// Add this to your RideComparisonScreen.js to trigger the save modal:
-/*
-const [showSaveModal, setShowSaveModal] = useState(false);
-
-// After setting pickup/destination locations
-const handleSavePrompt = () => {
-  setShowSaveModal(true);
-  navigation.navigate('SavedPlaces', { 
-    pickup: pickup, 
-    destination: destination 
-  });
-};
-
-// In your JSX where you want to trigger the save
-<Button title="Save This Route" onPress={handleSavePrompt} />
-*/
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     elevation: 3,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF8C00',
+    color: 'white',
   },
   content: {
     flex: 1,
@@ -170,7 +162,6 @@ const styles = StyleSheet.create({
   locationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
@@ -184,19 +175,16 @@ const styles = StyleSheet.create({
   locationName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   locationText: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 2,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
-    color: '#888',
   },
   modalOverlay: {
     flex: 1,
@@ -204,7 +192,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
     margin: 20,
     borderRadius: 10,
     padding: 20,
@@ -213,26 +200,23 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF8C00',
     marginBottom: 20,
     textAlign: 'center',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 6,
     padding: 12,
     marginBottom: 15,
+    fontSize: 14,
   },
   locationPreview: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 6,
     padding: 12,
     marginBottom: 20,
   },
   previewText: {
     fontSize: 14,
-    color: '#555',
     marginBottom: 5,
   },
   modalButtons: {
@@ -246,16 +230,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f0f0f0',
     marginRight: 10,
   },
   saveButton: {
-    backgroundColor: '#FF8C00',
     marginLeft: 10,
   },
   buttonText: {
     fontWeight: 'bold',
-    color: '#fff',
+    color: 'white',
   },
 });
 

@@ -1,4 +1,3 @@
-// screens/Ride/MapScreen.js
 import React, { useState, useEffect, useRef } from 'react';
 import {
     StyleSheet,
@@ -8,18 +7,15 @@ import {
     TextInput,
     FlatList,
     Keyboard,
-    Image,
-    Animated,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
-import { Magnetometer } from 'expo-sensors';
 
-const MapScreen = ({ navigation }) => {
+const MapScreen = ({ navigation, route }) => {
     const mapRef = useRef(null);
-    const [pickup, setPickup] = useState('');
-    const [destination, setDestination] = useState('');
+    const [pickup, setPickup] = useState(route.params?.initialPickup || '');
+    const [destination, setDestination] = useState(route.params?.initialDestination || '');
     const [pickupSuggestions, setPickupSuggestions] = useState([]);
     const [destinationSuggestions, setDestinationSuggestions] = useState([]);
     const [activeInput, setActiveInput] = useState(null);
@@ -30,32 +26,20 @@ const MapScreen = ({ navigation }) => {
         longitudeDelta: 0.0421,
     });
     const [markers, setMarkers] = useState({
-        pickup: null,
-        destination: null,
+        pickup: route.params?.pickupCoords || null,
+        destination: route.params?.destinationCoords || null,
     });
-
-    const [heading, setHeading] = useState(0);
-
-    // Magnetometer setup
-    useEffect(() => {
-        let subscription = Magnetometer.addListener((data) => {
-            if (data && data.x !== undefined && data.y !== undefined) {
-                let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
-                angle = angle >= 0 ? angle : 360 + angle;
-                setHeading(angle);
-            }
-        });
-
-        return () => {
-            subscription.remove();
-        };
-    }, []);
 
     // Fetch location suggestions from Nominatim API
     const fetchSuggestions = async (query, type) => {
         try {
             const response = await axios.get(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${query}`
+                `https://nominatim.openstreetmap.org/search?format=json&q=${query}`,
+                {
+                    headers: {
+                        'User-Agent': 'Your-App-Name' // Required by Nominatim usage policy
+                    }
+                }
             );
 
             const suggestions = response.data.map((item, index) => ({
@@ -67,10 +51,8 @@ const MapScreen = ({ navigation }) => {
 
             if (type === 'pickup') {
                 setPickupSuggestions(suggestions);
-                console.log('Pickup Suggestions:', suggestions); // Debugging log
             } else {
                 setDestinationSuggestions(suggestions);
-                console.log('Destination Suggestions:', suggestions); // Debugging log
             }
         } catch (error) {
             console.error('Error fetching location:', error);
@@ -120,9 +102,6 @@ const MapScreen = ({ navigation }) => {
                 },
                 1000
             );
-            console.log('Animating to:', { latitude: item.latitude, longitude: item.longitude }); // Debugging log
-        } else {
-            console.warn('mapRef.current is null'); // Debugging log
         }
     };
 
@@ -192,7 +171,7 @@ const MapScreen = ({ navigation }) => {
                 region={region}
                 onRegionChangeComplete={setRegion}
                 showsUserLocation={true}
-                showsCompass={false} // We use our own compass
+                showsCompass={true} // Re-enabled the default compass
             >
                 {markers.pickup && (
                     <Marker
@@ -201,6 +180,7 @@ const MapScreen = ({ navigation }) => {
                             longitude: markers.pickup.longitude,
                         }}
                         title="Pickup"
+                        pinColor="#FF8C00"
                     />
                 )}
                 {markers.destination && (
@@ -210,26 +190,10 @@ const MapScreen = ({ navigation }) => {
                             longitude: markers.destination.longitude,
                         }}
                         title="Destination"
-                        pinColor="blue"
+                        pinColor="#0000FF"
                     />
                 )}
             </MapView>
-
-            {/* Compass Overlay */}
-            <Animated.View
-                style={{
-                    position: 'absolute',
-                    top: 140,
-                    right: 20,
-                    transform: [{ rotate: `${360 - heading}deg` }],
-                    zIndex: 999,
-                }}
-            >
-                <Image
-                    source={require('../../assets/compass.png')}
-                    style={{ width: 40, height: 40 }}
-                />
-            </Animated.View>
         </View>
     );
 };

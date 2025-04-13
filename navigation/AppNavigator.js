@@ -17,7 +17,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import PrivacySettingsScreen from '../screens/Profile/PrivacySettingsScreen';
 import AboutUsScreen from '../screens/Profile/AboutUsScreen';
 import TermsScreen from '../screens/Auth/TermsScreen';
-
+//import PriceResultsScreen from '../screens/Ride/PriceResultsScreen'; // Add this import
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -33,7 +33,17 @@ function MainStack() {
         contentStyle: { backgroundColor: colors.background }
       }}
     >
-      <Stack.Screen name="RideComparison" component={RideComparisonScreen} />
+      <Stack.Screen 
+        name="RideComparison" 
+        component={RideComparisonScreen} 
+        options={{ 
+          title: 'Book a Ride',
+          headerShown: true,
+          headerStyle: { backgroundColor: '#FF8C00' },
+          headerTintColor: '#fff'
+        }}
+      />
+     
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
@@ -74,6 +84,11 @@ function HomeDrawer() {
         component={SettingsScreen}
         options={{ title: 'Settings' }}
       />
+      <Drawer.Screen 
+        name="SavedPlaces" 
+        component={SavedPlacesScreen}
+        options={{ title: 'Saved Places' }}
+      />
     </Drawer.Navigator>
   );
 }
@@ -85,15 +100,15 @@ const AppNavigator = () => {
         initialRouteName="Login"
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#FF8C00', // Orange header
+            backgroundColor: '#FF8C00',
           },
-          headerTintColor: '#fff', // White text
+          headerTintColor: '#fff',
           headerTitleStyle: {
             fontWeight: 'bold',
             fontSize: 20,
           },
           headerBackTitleVisible: false,
-          contentStyle: { backgroundColor: '#f8f9fa' } // Default light background
+          contentStyle: { backgroundColor: '#f8f9fa' }
         }}
       >
         <Stack.Screen
@@ -125,15 +140,6 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen 
-          name="SavedPlaces" 
-          component={SavedPlacesScreen}
-          options={{ 
-            title: 'Saved Places',
-            headerStyle: { backgroundColor: '#FF8C00' },
-            headerTintColor: '#fff'
-          }}
-        />
-        <Stack.Screen 
           name="Rating" 
           component={RatingScreen}
           options={{ 
@@ -143,45 +149,14 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen 
-          name="Settings"
-          component={SettingsScreen}
+          name="Terms" 
+          component={TermsScreen}
           options={{ 
-            title: 'Settings',
+            title: 'Terms of Service',
             headerStyle: { backgroundColor: '#FF8C00' },
             headerTintColor: '#fff'
           }}
         />
-        <Stack.Screen 
-          name="Profile"
-          component={ProfileScreen}
-          options={{ 
-            title: 'My Profile',
-            headerStyle: { backgroundColor: '#FF8C00' },
-            headerTintColor: '#fff'
-          }}
-        />
-        <Stack.Screen 
-          name="PrivacySettings"
-          component={PrivacySettingsScreen}
-          options={{ 
-            title: 'Privacy Settings',
-            headerStyle: { backgroundColor: '#FF8C00' },
-            headerTintColor: '#fff'
-          }}
-        />
-        <Stack.Screen 
-          name="AboutUs"
-          component={AboutUsScreen}
-          options={{ 
-            title: 'About Us',
-            headerStyle: { backgroundColor: '#FF8C00' },
-            headerTintColor: '#fff'
-          }}
-        />
-        <Stack.Screen 
-        name="Terms of Service" 
-        component={TermsScreen} />
-      
       </Stack.Navigator>
     </NavigationContainer>
   );
