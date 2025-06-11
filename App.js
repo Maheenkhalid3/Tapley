@@ -5,7 +5,6 @@ import AppNavigator from './navigation/AppNavigator';
 import 'react-native-gesture-handler';
 import { ThemeProvider } from './context/ThemeContext';
 
-
 function SplashScreen() {
   return (
     <View style={styles.splashContainer}>
