@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,12 @@ import {
   TextInput,
   Keyboard,
   FlatList,
-  Platform
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,18 +33,23 @@ const RideComparisonScreen = ({ navigation }) => {
     longitude: 73.0479,
     city: 'Rawalpindi'
   });
+  const [priceEstimate, setPriceEstimate] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [apiError, setApiError] = useState(null);
+
+  // Yango API credentials
+  const CLID = 'ak240927';
+  const APIKEY = 'jYfnzTHjIXAqMxXRNxnWlzBdowxyZgoLWp';
 
   const mapRef = useRef(null);
-  const scrollViewRef = useRef(null);
   const pickupInputRef = useRef(null);
   const destinationInputRef = useRef(null);
 
   const rideOptions = [
-    { id: 1, name: 'Bike', icon: 'motorcycle' },
-    { id: 3, name: 'Ride Mini', icon: 'car' },
-    { id: 4, name: 'Ride AC', icon: 'car' },
-    // { id: 5, name: 'Courier', icon: 'cube' },
-    // { id: 6, name: 'Cargo', icon: 'truck' },
+    { id: 1, name: 'Bike', icon: 'motorcycle', type: 'bike' },
+    { id: 3, name: 'Ride Mini', icon: 'car', type: 'mini' },
+    { id: 4, name: 'Ride AC', icon: 'car', type: 'ac' },
   ];
 
   const menuItems = [
@@ -56,38 +61,31 @@ const RideComparisonScreen = ({ navigation }) => {
     { name: 'Settings', icon: 'settings', screen: 'Settings' },
   ];
 
+  // Mock prices for fallback
+  const mockPrices = {
+    bike: { amount: 150, currency: 'PKR' },
+    mini: { amount: 300, currency: 'PKR' },
+    ac: { amount: 450, currency: 'PKR' },
+  };
+
   const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
 
-  const handlePriceComparison = () => {
-    if (!pickup || !destination) {
-      alert('Please select both pickup and destination locations');
+// Updated fetchSuggestions with proper error handling
+  const fetchSuggestions = useCallback(async (query, type) => {
+    if (query.length < 3) {
+      type === 'pickup' ? setPickupSuggestions([]) : setDestinationSuggestions([]);
       return;
     }
-    navigation.navigate('PriceResults', {
-      pickup,
-      destination,
-      rideType: rideOptions.find(r => r.id === selectedRide)?.name
-    });
-  };
 
-  const clearLocation = (type) => {
-    if (type === 'pickup') {
-      setPickup('');
-      setPickupCoords(null);
-      setPickupSuggestions([]);
-    } else {
-      setDestination('');
-      setDestinationCoords(null);
-      setDestinationSuggestions([]);
-    }
-  };
-
-  const fetchSuggestions = async (query, type) => {
     try {
       const response = await axios.get(
         `https://nominatim.openstreetmap.org/search?format=json&q=${query}+${currentLocation.city}`,
         {
-          headers: { 'User-Agent': 'Tapley-Ride-App' }
+          headers: { 
+            'User-Agent': 'Tapley-Ride-App/1.0 (com.yourcompany.tapley; contact@yourcompany.com)',
+            'Accept-Language': 'en-US,en;q=0.9'
+          },
+          timeout: 5000
         }
       );
 
@@ -101,37 +99,214 @@ const RideComparisonScreen = ({ navigation }) => {
 
       suggestions.sort((a, b) => (b.isLocal - a.isLocal));
 
-      if (type === 'pickup') {
-        setPickupSuggestions(suggestions.slice(0, 5));
+      type === 'pickup' 
+        ? setPickupSuggestions(suggestions.slice(0, 5))
+        : setDestinationSuggestions(suggestions.slice(0, 5));
+    } catch (error) {
+      console.error('Error fetching location suggestions:', error);
+      Alert.alert(
+        'Connection Error',
+        'Could not fetch location suggestions. Please check your internet connection.',
+        [{ text: 'OK' }]
+      );
+      type === 'pickup' ? setPickupSuggestions([]) : setDestinationSuggestions([]);
+    }
+  }, [currentLocation.city]);
+
+  // Updated fetchPriceEstimate with proper Yango API implementation
+  const fetchPriceEstimate = useCallback(async () => {
+    if (!pickupCoords || !destinationCoords || !selectedRide) return;
+
+    setLoading(true);
+    setApiError(null);
+    const selectedRideType = rideOptions.find(r => r.id === selectedRide)?.type;
+
+    try {
+      // First try the Yango API
+      const response = await axios.get('https://yango.taxi.yandex.net/api/estimate', {
+        headers: {
+          'CLID': CLID,
+          'APIKEY': APIKEY,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Tapley-Ride-App/1.0'
+        },
+        params: {
+          pickup_lat: pickupCoords.latitude,
+          pickup_lon: pickupCoords.longitude,
+          dropoff_lat: destinationCoords.latitude,
+          dropoff_lon: destinationCoords.longitude,
+          vehicle_type: selectedRideType,
+        },
+        timeout: 8000
+      });
+
+      if (response.data?.price) {
+        setPriceEstimate(response.data.price);
       } else {
-        setDestinationSuggestions(suggestions.slice(0, 5));
+        console.warn("Unexpected API response format, using mock data");
+        setPriceEstimate(mockPrices[selectedRideType]);
       }
     } catch (error) {
-      console.error('Error fetching location:', error);
+      console.error("API request failed:", error);
+      
+      // Fallback to taxi.yandex.net API if first attempt fails
+      try {
+        const fallbackResponse = await axios.get(
+          'https://taxi-routeinfo.taxi.yandex.net/taxi_info',
+          {
+            headers: {
+              'YaTaxi-Api-Key': APIKEY,
+              'Accept': 'application/json',
+              'User-Agent': 'Tapley-Ride-App/1.0'
+            },
+            params: {
+              clid: CLID,
+              rll: `${pickupCoords.longitude},${pickupCoords.latitude}~${destinationCoords.longitude},${destinationCoords.latitude}`,
+              class: selectedRideType,
+            },
+            timeout: 5000
+          }
+        );
+        
+        if (fallbackResponse.data?.price) {
+          setPriceEstimate(fallbackResponse.data.price);
+        } else {
+          throw new Error("Fallback API also failed");
+        }
+      } catch (fallbackError) {
+        console.error("Fallback API also failed:", fallbackError);
+        setApiError('Failed to get live prices. Showing approximate pricing.');
+        setPriceEstimate(mockPrices[selectedRideType]);
+      }
+    } finally {
+      setLoading(false);
+      setShowPriceModal(true);
     }
-  };
+  }, [pickupCoords, destinationCoords, selectedRide]);
 
-  const handleInputChange = (text, type) => {
+
+
+  // const fetchPriceEstimate = useCallback(async () => {
+  //   if (!pickupCoords || !destinationCoords || !selectedRide) return;
+
+  //   setLoading(true);
+  //   setApiError(null);
+  //   const selectedRideType = rideOptions.find(r => r.id === selectedRide)?.type;
+
+  //   try {
+  //     // Create custom axios instance with specific headers
+  //     const taxiAxios = axios.create({
+  //       baseURL: 'https://api.yango.yandex.com',
+  //       headers: {
+  //         'CLID': CLID,
+  //         'APIKEY': APIKEY,
+  //         'Accept': 'application/json',
+  //         'Content-Type': 'application/json',
+  //         'User-Agent': 'Tapley-Ride-App/1.0'
+  //       },
+  //       timeout: 8000
+  //     });
+
+  //     const response = await taxiAxios.get('/api/estimate', {
+  //       params: {
+  //         pickup_lat: pickupCoords.latitude,
+  //         pickup_lon: pickupCoords.longitude,
+  //         dropoff_lat: destinationCoords.latitude,
+  //         dropoff_lon: destinationCoords.longitude,
+  //         vehicle_type: selectedRideType,
+  //       }
+  //     });
+
+  //     if (response.data?.price) {
+  //       setPriceEstimate(response.data.price);
+  //     } else {
+  //       console.warn("Unexpected API response format, using mock data");
+  //       setPriceEstimate(mockPrices[selectedRideType]);
+  //     }
+  //   } catch (error) {
+  //     console.error("API request failed:", error);
+  //     setApiError('Failed to get price estimate. Using approximate pricing.');
+  //     setPriceEstimate(mockPrices[selectedRideType]);
+  //   } finally {
+  //     setLoading(false);
+  //     setShowPriceModal(true);
+  //   }
+  // }, [pickupCoords, destinationCoords, selectedRide]);
+
+  // const clearLocation = useCallback((type) => {
+  //   if (type === 'pickup') {
+  //     setPickup('');
+  //     setPickupCoords(null);
+  //     setPickupSuggestions([]);
+  //   } else {
+  //     setDestination('');
+  //     setDestinationCoords(null);
+  //     setDestinationSuggestions([]);
+  //   }
+  //   setPriceEstimate(null);
+  //   setApiError(null);
+  // }, []);
+
+  // const fetchSuggestions = useCallback(async (query, type) => {
+  //   if (query.length < 3) {
+  //     if (type === 'pickup') {
+  //       setPickupSuggestions([]);
+  //     } else {
+  //       setDestinationSuggestions([]);
+  //     }
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.get(
+  //       `https://nominatim.openstreetmap.org/search?format=json&q=${query}+${currentLocation.city}`,
+  //       {
+  //         headers: { 'User-Agent': 'Tapley-Ride-App' },
+  //         timeout: 5000
+  //       }
+  //     );
+
+  //     const suggestions = response.data.map((item, index) => ({
+  //       id: index.toString(),
+  //       name: item.display_name,
+  //       latitude: parseFloat(item.lat),
+  //       longitude: parseFloat(item.lon),
+  //       isLocal: item.display_name.includes(currentLocation.city)
+  //     }));
+
+  //     suggestions.sort((a, b) => (b.isLocal - a.isLocal));
+
+  //     if (type === 'pickup') {
+  //       setPickupSuggestions(suggestions.slice(0, 5));
+  //     } else {
+  //       setDestinationSuggestions(suggestions.slice(0, 5));
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching location suggestions:', error);
+  //     if (type === 'pickup') {
+  //       setPickupSuggestions([]);
+  //     } else {
+  //       setDestinationSuggestions([]);
+  //     }
+  //   }
+  // }, [currentLocation.city]);
+
+  const handleInputChange = useCallback((text, type) => {
     if (type === 'pickup') {
       setPickup(text);
       setActiveInput('pickup');
-      if (text.length > 2) {
-        fetchSuggestions(text, 'pickup');
-      } else {
-        setPickupSuggestions([]);
-      }
+      fetchSuggestions(text, 'pickup');
     } else {
       setDestination(text);
       setActiveInput('destination');
-      if (text.length > 2) {
-        fetchSuggestions(text, 'destination');
-      } else {
-        setDestinationSuggestions([]);
-      }
+      fetchSuggestions(text, 'destination');
     }
-  };
+    setPriceEstimate(null);
+    setApiError(null);
+  }, [fetchSuggestions]);
 
-  const handleSelectLocation = (item, type) => {
+  const handleSelectLocation = useCallback((item, type) => {
     if (type === 'pickup') {
       setPickup(item.name);
       setPickupCoords({
@@ -161,9 +336,9 @@ const RideComparisonScreen = ({ navigation }) => {
         1000
       );
     }
-  };
+  }, []);
 
-  const renderSuggestionItem = ({ item }, type) => (
+  const renderSuggestionItem = useCallback(({ item }, type) => (
     <TouchableOpacity
       style={styles.suggestionItem}
       onPress={() => handleSelectLocation(item, type)}
@@ -182,9 +357,9 @@ const RideComparisonScreen = ({ navigation }) => {
         </Text>
       </View>
     </TouchableOpacity>
-  );
+  ), [handleSelectLocation]);
 
-  const getInitialRegion = () => {
+  const getInitialRegion = useCallback(() => {
     if (pickupCoords && destinationCoords) {
       return {
         latitude: (pickupCoords.latitude + destinationCoords.latitude) / 2,
@@ -199,9 +374,9 @@ const RideComparisonScreen = ({ navigation }) => {
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
     };
-  };
+  }, [pickupCoords, destinationCoords, currentLocation]);
 
-  const renderRideOptions = () => (
+  const renderRideOptions = useCallback(() => (
     <View style={styles.rideOptionsContainer}>
       {rideOptions.map((ride) => (
         <TouchableOpacity
@@ -228,16 +403,12 @@ const RideComparisonScreen = ({ navigation }) => {
         </TouchableOpacity>
       ))}
     </View>
-  );
+  ), [selectedRide]);
 
   return (
-    <KeyboardAwareScrollView
-      ref={scrollViewRef}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      keyboardShouldPersistTaps="handled"
-      enableOnAndroid={true}
-      extraScrollHeight={Platform.OS === 'ios' ? 100 : 50}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -338,17 +509,62 @@ const RideComparisonScreen = ({ navigation }) => {
       {/* Ride Options */}
       {renderRideOptions()}
 
-      {/* Price Comparison Button - Orange */}
+      {/* Price Comparison Button */}
       <TouchableOpacity 
         style={[
           styles.compareButton,
           (!pickup || !destination || !selectedRide) && styles.disabledButton
         ]}
-        onPress={handlePriceComparison}
-        disabled={!pickup || !destination || !selectedRide}
+        onPress={fetchPriceEstimate}
+        disabled={!pickup || !destination || !selectedRide || loading}
       >
-        <Text style={styles.compareButtonText}>Price Comparison</Text>
+        <Text style={styles.compareButtonText}>
+          {loading ? 'Calculating...' : 'Price Comparison'}
+        </Text>
       </TouchableOpacity>
+
+      {/* Price Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showPriceModal}
+        onRequestClose={() => setShowPriceModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.priceModal}>
+            <Text style={styles.priceModalTitle}>Price Estimate</Text>
+            
+            {apiError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{apiError}</Text>
+              </View>
+            )}
+            
+            <View style={styles.priceDetail}>
+              <Text style={styles.priceLabel}>Ride Type:</Text>
+              <Text style={styles.priceValue}>
+                {rideOptions.find(r => r.id === selectedRide)?.name}
+              </Text>
+            </View>
+            
+            <View style={styles.priceDetail}>
+              <Text style={styles.priceLabel}>Estimated Price:</Text>
+              <Text style={styles.priceValue}>
+                {priceEstimate?.amount} {priceEstimate?.currency}
+              </Text>
+            </View>
+            
+            <View style={styles.priceButtons}>
+              <TouchableOpacity 
+                style={styles.priceButton}
+                onPress={() => setShowPriceModal(false)}
+              >
+                <Text style={styles.priceButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Sidebar Menu */}
       <Modal
@@ -388,7 +604,7 @@ const RideComparisonScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-    </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -396,9 +612,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-  },
-  contentContainer: {
-    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -503,7 +716,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   compareButton: {
-    backgroundColor: '#FF8C00', // Orange color
+    backgroundColor: '#FF8C00',
     padding: 16,
     borderRadius: 8,
     marginHorizontal: 16,
@@ -521,6 +734,55 @@ const styles = StyleSheet.create({
   },
   compareButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  priceModal: {
+    backgroundColor: 'white',
+    width: '80%',
+    borderRadius: 10,
+    padding: 20,
+  },
+  priceModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FF8C00',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  priceDetail: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  priceLabel: {
+    fontSize: 16,
+    color: '#555',
+  },
+  priceValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  priceButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  priceButton: {
+    backgroundColor: '#FF8C00',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  priceButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -561,6 +823,17 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     fontSize: 16,
     color: '#333',
+  },
+  errorContainer: {
+    backgroundColor: '#FFEBEE',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

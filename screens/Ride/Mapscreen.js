@@ -1,257 +1,171 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-    StyleSheet,
-    View,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    FlatList,
-    Keyboard,
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { MaterialIcons } from '@expo/vector-icons';
-import axios from 'axios';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { View, StyleSheet } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
-const MapScreen = ({ navigation, route }) => {
-    const mapRef = useRef(null);
-    const [pickup, setPickup] = useState(route.params?.initialPickup || '');
-    const [destination, setDestination] = useState(route.params?.initialDestination || '');
-    const [pickupSuggestions, setPickupSuggestions] = useState([]);
-    const [destinationSuggestions, setDestinationSuggestions] = useState([]);
-    const [activeInput, setActiveInput] = useState(null);
-    const [region, setRegion] = useState({
-        latitude: 33.6844,
-        longitude: 73.0479,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-    });
-    const [markers, setMarkers] = useState({
-        pickup: route.params?.pickupCoords || null,
-        destination: route.params?.destinationCoords || null,
-    });
+// Import all screens
+import LoginScreen from '../screens/Auth/Login_screen';
+import RideComparisonScreen from '../screens/Ride/Ride_comparison_screen';
+import HelpSupportScreen from '../screens/Auth/HelpSupportScreen';
+import RatingScreen from '../screens/Ride/RatingScreen';
+import PrivacyPolicyScreen from '../screens/Auth/PrivacyPolicyScreen';
+import SavedPlacesScreen from '../screens/Profile/SavedPlacesScreen';
+import SettingsScreen from '../screens/Profile/SettingsScreen';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
+import PrivacySettingsScreen from '../screens/Profile/PrivacySettingsScreen';
+import AboutUsScreen from '../screens/Profile/AboutUsScreen';
+import TermsScreen from '../screens/Auth/TermsScreen';
+//import PriceResultsScreen from '../screens/Ride/PriceResultsScreen'; // Add this import
 
-    // Fetch location suggestions from Nominatim API
-    const fetchSuggestions = async (query, type) => {
-        try {
-            const response = await axios.get(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${query}`,
-                {
-                    headers: {
-                        'User-Agent': 'Your-App-Name' // Required by Nominatim usage policy
-                    }
-                }
-            );
+const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
 
-            const suggestions = response.data.map((item, index) => ({
-                id: index.toString(),
-                name: item.display_name,
-                latitude: parseFloat(item.lat),
-                longitude: parseFloat(item.lon),
-            }));
+// Main stack navigator
+function MainStack() {
+  const { colors } = React.useContext(ThemeContext);
 
-            if (type === 'pickup') {
-                setPickupSuggestions(suggestions);
-            } else {
-                setDestinationSuggestions(suggestions);
-            }
-        } catch (error) {
-            console.error('Error fetching location:', error);
-        }
-    };
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background }
+      }}
+    >
+      <Stack.Screen 
+        name="RideComparison" 
+        component={RideComparisonScreen} 
+        options={{ 
+          title: 'Book a Ride',
+          headerShown: true,
+          headerStyle: { backgroundColor: '#FF8C00' },
+          headerTintColor: '#fff'
+        }}
+      />
+     
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+    </Stack.Navigator>
+  );
+}
 
-    const handleInputChange = (text, type) => {
-        if (type === 'pickup') {
-            setPickup(text);
-            setActiveInput('pickup');
-            if (text.length > 2) {
-                fetchSuggestions(text, 'pickup');
-            } else {
-                setPickupSuggestions([]);
-            }
-        } else {
-            setDestination(text);
-            setActiveInput('destination');
-            if (text.length > 2) {
-                fetchSuggestions(text, 'destination');
-            } else {
-                setDestinationSuggestions([]);
-            }
-        }
-    };
+// Drawer navigation
+function HomeDrawer() {
+  const { colors } = React.useContext(ThemeContext);
 
-    const handleSelectLocation = (item, type) => {
-        if (type === 'pickup') {
-            setPickup(item.name);
-            setMarkers({ ...markers, pickup: item });
-            setPickupSuggestions([]);
-        } else {
-            setDestination(item.name);
-            setMarkers({ ...markers, destination: item });
-            setDestinationSuggestions([]);
-        }
+  return (
+    <Drawer.Navigator
+      screenOptions={{
+        drawerActiveTintColor: colors.primary,
+        drawerInactiveTintColor: colors.text,
+        drawerStyle: {
+          backgroundColor: colors.card,
+          paddingTop: 40,
+        },
+        headerShown: false,
+        sceneContainerStyle: { backgroundColor: colors.background }
+      }}
+    >
+      <Drawer.Screen 
+        name="Main" 
+        component={MainStack} 
+        options={{ title: 'Home' }}
+      />
+      <Drawer.Screen 
+        name="ProfileDrawer" 
+        component={ProfileScreen}
+        options={{ title: 'My Profile' }}
+      />
+      <Drawer.Screen 
+        name="SettingsDrawer" 
+        component={SettingsScreen}
+        options={{ title: 'Settings' }}
+      />
+      <Drawer.Screen 
+        name="SavedPlaces" 
+        component={SavedPlacesScreen}
+        options={{ title: 'Saved Places' }}
+      />
+    </Drawer.Navigator>
+  );
+}
 
-        Keyboard.dismiss();
-
-        if (mapRef.current) {
-            mapRef.current.animateToRegion(
-                {
-                    latitude: item.latitude,
-                    longitude: item.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                },
-                1000
-            );
-        }
-    };
-
-    const renderSuggestionItem = ({ item }, type) => (
-        <TouchableOpacity
-            style={styles.suggestionItem}
-            onPress={() => handleSelectLocation(item, type)}
-        >
-            <MaterialIcons
-                name={type === 'pickup' ? 'my-location' : 'location-on'}
-                size={20}
-                color="#FF8C00"
-            />
-            <View style={styles.suggestionTextContainer}>
-                <Text style={styles.suggestionText}>{item.name}</Text>
-                <Text style={styles.suggestionSubtext}>Powered by OpenStreetMap</Text>
-            </View>
-        </TouchableOpacity>
-    );
-
-    return (
-        <View style={styles.container}>
-            {/* Input Fields */}
-            <View style={styles.inputContainer}>
-                <View style={styles.inputField}>
-                    <MaterialIcons name="my-location" size={20} color="#FF8C00" />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter pickup location"
-                        placeholderTextColor="#aaa"
-                        value={pickup}
-                        onChangeText={(text) => handleInputChange(text, 'pickup')}
-                    />
-                </View>
-                <View style={styles.inputField}>
-                    <MaterialIcons name="location-on" size={20} color="#FF8C00" />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter destination"
-                        placeholderTextColor="#aaa"
-                        value={destination}
-                        onChangeText={(text) => handleInputChange(text, 'destination')}
-                    />
-                </View>
-            </View>
-
-            {/* Suggestions List */}
-            {activeInput &&
-                (activeInput === 'pickup' ? pickupSuggestions : destinationSuggestions)
-                    .length > 0 && (
-                    <FlatList
-                        style={styles.suggestionsContainer}
-                        data={
-                            activeInput === 'pickup'
-                                ? pickupSuggestions
-                                : destinationSuggestions
-                        }
-                        renderItem={(item) => renderSuggestionItem(item, activeInput)}
-                        keyExtractor={(item) => item.id}
-                    />
-                )}
-
-            {/* Map */}
-            <MapView
-                ref={mapRef}
-                style={styles.map}
-                region={region}
-                onRegionChangeComplete={setRegion}
-                showsUserLocation={true}
-                showsCompass={true} // Re-enabled the default compass
-            >
-                {markers.pickup && (
-                    <Marker
-                        coordinate={{
-                            latitude: markers.pickup.latitude,
-                            longitude: markers.pickup.longitude,
-                        }}
-                        title="Pickup"
-                        pinColor="#FF8C00"
-                    />
-                )}
-                {markers.destination && (
-                    <Marker
-                        coordinate={{
-                            latitude: markers.destination.latitude,
-                            longitude: markers.destination.longitude,
-                        }}
-                        title="Destination"
-                        pinColor="#0000FF"
-                    />
-                )}
-            </MapView>
-        </View>
-    );
+const AppNavigator = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Login"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#FF8C00',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontSize: 20,
+          },
+          headerBackTitleVisible: false,
+          contentStyle: { backgroundColor: '#f8f9fa' }
+        }}
+      >
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={HomeDrawer}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="HelpSupport" 
+          component={HelpSupportScreen}
+          options={{ 
+            title: 'Help & Support',
+            headerStyle: { backgroundColor: '#FF8C00' },
+            headerTintColor: '#fff'
+          }}
+        />
+        <Stack.Screen 
+          name="PrivacyPolicy" 
+          component={PrivacyPolicyScreen}
+          options={{ 
+            title: 'Privacy Policy',
+            headerStyle: { backgroundColor: '#FF8C00' },
+            headerTintColor: '#fff'
+          }}
+        />
+        <Stack.Screen 
+          name="Rating" 
+          component={RatingScreen}
+          options={{ 
+            title: 'Rate Us',
+            headerStyle: { backgroundColor: '#FF8C00' },
+            headerTintColor: '#fff'
+          }}
+        />
+        <Stack.Screen 
+          name="Terms" 
+          component={TermsScreen}
+          options={{ 
+            title: 'Terms of Service',
+            headerStyle: { backgroundColor: '#FF8C00' },
+            headerTintColor: '#fff'
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    inputContainer: {
-        padding: 10,
-        backgroundColor: '#fff',
-        elevation: 2,
-        zIndex: 10,
-    },
-    inputField: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f1f1f1',
-        padding: 10,
-        borderRadius: 6,
-        marginBottom: 8,
-    },
-    input: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#333',
-    },
-    map: {
-        flex: 1,
-    },
-    suggestionsContainer: {
-        position: 'absolute',
-        top: 110,
-        left: 10,
-        right: 10,
-        backgroundColor: '#fff',
-        maxHeight: 200,
-        zIndex: 20,
-        borderRadius: 8,
-        elevation: 3,
-    },
-    suggestionItem: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    suggestionTextContainer: {
-        marginLeft: 10,
-    },
-    suggestionText: {
-        fontSize: 14,
-        color: '#333',
-    },
-    suggestionSubtext: {
-        fontSize: 12,
-        color: '#888',
-    },
+  screenContainer: {
+    flex: 1,
+  },
 });
 
-export default MapScreen;
+export default AppNavigator;
