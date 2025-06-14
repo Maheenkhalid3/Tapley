@@ -17,7 +17,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import PrivacySettingsScreen from '../screens/Profile/PrivacySettingsScreen';
 import AboutUsScreen from '../screens/Profile/AboutUsScreen';
 import TermsScreen from '../screens/Auth/TermsScreen';
-//import PriceResultsScreen from '../screens/Ride/PriceResultsScreen'; // Add this import
+import PriceComparisonScreen from '../screens/Ride/PriceComparisonScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -43,7 +43,16 @@ function MainStack() {
           headerTintColor: '#fff'
         }}
       />
-     
+      <Stack.Screen 
+        name="PriceComparison" 
+        component={PriceComparisonScreen}
+        options={{ 
+          title: 'Price Comparison',
+          headerShown: true,
+          headerStyle: { backgroundColor: '#FF8C00' },
+          headerTintColor: '#fff'
+        }}
+      />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
