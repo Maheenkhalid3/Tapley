@@ -30,7 +30,7 @@ const PAKISTAN_REGION = {
 
 const RideComparisonScreen = ({ navigation }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [pickup, setPickup] = useState('Getting your location...');
+  const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
   const [selectedRide, setSelectedRide] = useState(null);
   const [pickupCoords, setPickupCoords] = useState(null);
@@ -47,6 +47,9 @@ const RideComparisonScreen = ({ navigation }) => {
   const mapRef = useRef(null);
   const pickupInputRef = useRef(null);
   const destinationInputRef = useRef(null);
+
+  const typingTimeoutRef = useRef(null);
+
 
   const API_CONFIG = {
     CLID: 'ak240927',
@@ -74,81 +77,136 @@ const RideComparisonScreen = ({ navigation }) => {
     { name: 'Settings', icon: 'settings', screen: 'Settings' },
   ];
 
-  useEffect(() => {
-    const getLocation = async () => {
-      try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          setApiError('Permission to access location was denied');
-          return;
-        }
+  // useEffect(() => {
+  //   const getLocation = async () => {
+  //     try {
+  //       let { status } = await Location.requestForegroundPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         setApiError('Permission to access location was denied');
+  //         return;
+  //       }
 
-        let location = await Location.getCurrentPositionAsync({});
-        const coords = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude
-        };
-        setPickupCoords(coords);
-        setCurrentRegion({
-          ...coords,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        });
+  //       let location = await Location.getCurrentPositionAsync({});
+  //       const coords = {
+  //         latitude: location.coords.latitude,
+  //         longitude: location.coords.longitude
+  //       };
+  //       setPickupCoords(coords);
+  //       setCurrentRegion({
+  //         ...coords,
+  //         latitudeDelta: 0.05,
+  //         longitudeDelta: 0.05,
+  //       });
 
-        const address = await reverseGeocode(coords.latitude, coords.longitude);
-        setPickup(address || 'Current Location');
+  //       const address = await reverseGeocode(coords.latitude, coords.longitude);
+  //       setPickup(address || 'Current Location');
 
-        mapRef.current?.animateToRegion({
-          ...coords,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }, 1000);
-      } catch (error) {
-        console.error('Error getting location:', error);
-        setApiError('Could not get your current location');
-        mapRef.current?.animateToRegion(PAKISTAN_REGION, 1000);
+  //       mapRef.current?.animateToRegion({
+  //         ...coords,
+  //         latitudeDelta: 0.05,
+  //         longitudeDelta: 0.05,
+  //       }, 1000);
+  //     } catch (error) {
+  //       console.error('Error getting location:', error);
+  //       setApiError('Could not get your current location');
+  //       mapRef.current?.animateToRegion(PAKISTAN_REGION, 1000);
+  //     }
+  //   };
+
+  //   getLocation();
+  // }, []);
+
+const simplifyAddress = (fullAddress) => {
+  const parts = fullAddress.split(',');
+  if (parts.length >= 2) {
+    return `${parts[0].trim()}, ${parts[1].trim()}`;
+  }
+  return fullAddress;
+};
+
+
+ const reverseGeocode = async (lat, lon) => {
+  try {
+    const response = await axios.get(API_CONFIG.ENDPOINTS.REVERSE_GEOCODE, {
+      params: {
+        format: 'json',
+        lat: lat,
+        lon: lon,
+        zoom: 18,
+        addressdetails: 1,
+        'accept-language': 'en'
+      },
+      headers: { 'User-Agent': 'Tapley-Ride-App/1.0' },
+      timeout: API_CONFIG.TIMEOUT
+    });
+
+    return simplifyAddress(response.data.display_name);
+  } catch (error) {
+    console.error('Reverse geocode error:', error);
+    return null;
+  }
+};
+
+const geocodeAddress = async (query) => {
+  try {
+    const response = await axios.get(API_CONFIG.ENDPOINTS.SUGGESTIONS, {
+      params: {
+        format: 'json',
+        q: query,
+        limit: 1,
+        countrycodes: 'pk',
+        'accept-language': 'en'
+      },
+      headers: { 'User-Agent': 'Tapley-Ride-App/1.0' },
+      timeout: API_CONFIG.TIMEOUT
+    });
+
+    if (response.data && response.data.length > 0) {
+      return {
+        latitude: parseFloat(response.data[0].lat),
+        longitude: parseFloat(response.data[0].lon),
+        name: simplifyAddress(response.data[0].display_name)
+      };
+    }
+  } catch (error) {
+    console.error('Geocode error:', error);
+  }
+  return null;
+};
+
+
+
+ const fetchSuggestions = useCallback((query, type) => {
+  if (query.length < 3) {
+    if (type === 'pickup') setPickupSuggestions([]);
+    else setDestinationSuggestions([]);
+    return;
+  }
+
+  // Debounce logic
+  if (typingTimeoutRef.current) {
+    clearTimeout(typingTimeoutRef.current);
+  }
+
+  typingTimeoutRef.current = setTimeout(async () => {
+    try {
+      const params = {
+        format: 'json',
+        q: query,
+        limit: 5,
+        countrycodes: 'pk',
+        'accept-language': 'en'
+      };
+
+      // Optional: center around last selected location
+      const coords = type === 'pickup' ? pickupCoords : destinationCoords;
+      if (coords) {
+        params.viewbox = `${coords.longitude - 0.5},${coords.latitude + 0.5},${coords.longitude + 0.5},${coords.latitude - 0.5}`;
+        params.bounded = 1;
       }
-    };
 
-    getLocation();
-  }, []);
-
-  const reverseGeocode = async (lat, lon) => {
-    try {
-      const response = await axios.get(API_CONFIG.ENDPOINTS.REVERSE_GEOCODE, {
-        params: {
-          format: 'json',
-          lat: lat,
-          lon: lon,
-          zoom: 18,
-          addressdetails: 1,
-          'accept-language': 'en'
-        },
-        headers: { 'User-Agent': 'Tapley-Ride-App/1.0' },
-        timeout: API_CONFIG.TIMEOUT
-      });
-
-      return response.data.display_name;
-    } catch (error) {
-      console.error('Reverse geocode error:', error);
-      return null;
-    }
-  };
-
-  const fetchSuggestions = useCallback(async (query, type) => {
-    if (query.length < 3) {
-      type === 'pickup' ? setPickupSuggestions([]) : setDestinationSuggestions([]);
-      return;
-    }
-
-    try {
       const response = await axios.get(API_CONFIG.ENDPOINTS.SUGGESTIONS, {
-        params: {
-          format: 'json',
-          q: query,
-          limit: 5,
-          'accept-language': 'en'
-        },
+        params,
         headers: { 'User-Agent': 'Tapley-Ride-App/1.0' },
         timeout: API_CONFIG.TIMEOUT
       });
@@ -160,14 +218,19 @@ const RideComparisonScreen = ({ navigation }) => {
         longitude: parseFloat(item.lon)
       }));
 
-      type === 'pickup' 
-        ? setPickupSuggestions(suggestions)
-        : setDestinationSuggestions(suggestions);
+      if (type === 'pickup') {
+        setPickupSuggestions(suggestions);
+      } else {
+        setDestinationSuggestions(suggestions);
+      }
+
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      Alert.alert('Error', 'Could not fetch location suggestions');
+      console.error('Suggestion error:', error);
     }
-  }, []);
+  }, 500); // Wait 500ms before firing API
+}, [pickupCoords, destinationCoords]);
+
+
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
@@ -389,18 +452,34 @@ const RideComparisonScreen = ({ navigation }) => {
       <View style={styles.inputWrapper}>
         <MaterialIcons name="my-location" size={20} color="#FF8C00" />
         <TextInput
-          ref={pickupInputRef}
-          style={styles.input}
-          placeholder="Pickup location"
-          placeholderTextColor="#aaa"
-          value={pickup}
-          onChangeText={(text) => {
-            setPickup(text);
-            setActiveInput('pickup');
-            fetchSuggestions(text, 'pickup');
-          }}
-          onFocus={() => setActiveInput('pickup')}
-        />
+  ref={pickupInputRef}
+  style={styles.input}
+  placeholder="Pickup location"
+  placeholderTextColor="#aaa"
+  value={pickup}
+  onChangeText={(text) => {
+    setPickup(text);
+    setActiveInput('pickup');
+    fetchSuggestions(text, 'pickup');
+  }}
+  onFocus={() => setActiveInput('pickup')}
+  onBlur={async () => {
+  if (pickup) {
+    const location = await geocodeAddress(pickup);
+    if (location) {
+      setPickupCoords({ latitude: location.latitude, longitude: location.longitude });
+      setPickup(location.name);
+      mapRef.current?.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05
+      }, 1000);
+    }
+  }
+}}
+
+/>
         <TouchableOpacity 
           style={styles.mapSelectButton}
           onPress={() => {
@@ -416,18 +495,35 @@ const RideComparisonScreen = ({ navigation }) => {
       <View style={styles.inputWrapper}>
         <MaterialIcons name="location-on" size={20} color="#FF8C00" />
         <TextInput
-          ref={destinationInputRef}
-          style={styles.input}
-          placeholder="Enter destination"
-          placeholderTextColor="#aaa"
-          value={destination}
-          onChangeText={(text) => {
-            setDestination(text);
-            setActiveInput('destination');
-            fetchSuggestions(text, 'destination');
-          }}
-          onFocus={() => setActiveInput('destination')}
-        />
+  ref={destinationInputRef}
+  style={styles.input}
+  placeholder="Enter destination"
+  placeholderTextColor="#aaa"
+  value={destination}
+  onChangeText={(text) => {
+    setDestination(text);
+    setActiveInput('destination');
+    fetchSuggestions(text, 'destination');
+  }}
+  onFocus={() => setActiveInput('destination')}
+ onBlur={async () => {
+  if (destination) {
+    const location = await geocodeAddress(destination);
+    if (location) {
+      setDestinationCoords({ latitude: location.latitude, longitude: location.longitude });
+      setDestination(location.name);
+      mapRef.current?.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05
+      }, 1000);
+    }
+  }
+}}
+
+
+/>
         <TouchableOpacity 
           style={styles.mapSelectButton}
           onPress={() => {
@@ -447,17 +543,24 @@ const RideComparisonScreen = ({ navigation }) => {
       style={styles.suggestionItem}
       onPress={() => {
         if (type === 'pickup') {
-          setPickup(item.name);
-          setPickupCoords({
-            latitude: item.latitude,
-            longitude: item.longitude
-          });
+         setPickup(simplifyAddress(item.name));
+         setPickupCoords({ latitude: item.latitude, longitude: item.longitude });
+         mapRef.current?.animateToRegion({
+         latitude: item.latitude,
+         longitude: item.longitude,
+         latitudeDelta: 0.05,
+         longitudeDelta: 0.05,
+         }, 1000);
         } else {
-          setDestination(item.name);
-          setDestinationCoords({
-            latitude: item.latitude,
-            longitude: item.longitude
-          });
+          setDestination(simplifyAddress(item.name));
+          setDestinationCoords({ latitude: item.latitude, longitude: item.longitude });
+          mapRef.current?.animateToRegion({
+          latitude: item.latitude,
+          longitude: item.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+         }, 1000);
+
         }
         setActiveInput(null);
         Keyboard.dismiss();

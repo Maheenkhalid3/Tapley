@@ -35,7 +35,7 @@ const LoginScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  const API_URL = 'http://192.168.1.100:3000';
+  const API_URL = 'http://192.168.100.3:3000';
 
   const handleAuth = async () => {
     if (isLogin) {
